@@ -15,6 +15,9 @@ import soundfile as sf
 load_dotenv()
 
 def voice_to_voice(audio_file):
+    # # Disable recording button during processing
+    # audio_input.update(interactive=False)
+    
     # Transcribe speech
     transcript = transcribe_audio(audio_file)
 
@@ -84,12 +87,12 @@ def text_to_speech(text: str):
     
     audio_bytes.seek(0)  # Reset buffer position
     
-    # Convert BytesIO to NumPy array
+    # Convert BytesIO to NumPy array and ensure correct data type
     audio_data, sample_rate = sf.read(audio_bytes, dtype='int16')
     return sample_rate, audio_data
 
 with gr.Blocks() as demo:
-    gr.Markdown("## Record yourself and immediately receive voice translations.")
+    gr.Markdown("## Record yourself in English and immediately receive voice translations.")
     with gr.Row():
         with gr.Column():
             audio_input = gr.Audio(sources=["microphone"],
@@ -102,16 +105,16 @@ with gr.Blocks() as demo:
                                        show_controls=False,
                                    ))
             with gr.Row():
-                submit = gr.Button("Submit", variant="primary")
-                btn = gr.ClearButton(audio_input, "Clear")
-
+                clr_btn = gr.ClearButton(audio_input, "Clear")
+    
     with gr.Row():
         with gr.Group() as bangla:
             bg_output = gr.Audio(label="Bangla", interactive=False)
             bg_text = gr.Markdown()
 
     output_components = [bg_output, bg_text]
-    submit.click(fn=voice_to_voice, inputs=audio_input, outputs=output_components, show_progress=True)
+    audio_input.change(fn=voice_to_voice, inputs=audio_input, outputs=output_components, show_progress=True)
+
 
 if __name__ == "__main__":
     demo.launch()
