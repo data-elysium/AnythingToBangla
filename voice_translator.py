@@ -7,7 +7,11 @@ import uuid
 from elevenlabs import VoiceSettings
 from elevenlabs.client import ElevenLabs
 from pathlib import Path
+from dotenv import load_dotenv
+import os
 
+# Load environment variables from .env file
+load_dotenv()
 
 def voice_to_voice(audio_file):
 
@@ -30,14 +34,18 @@ def voice_to_voice(audio_file):
         generated_audio_paths.append(path)
 
 
-    return generated_audio_paths[0], generated_audio_paths[1], generated_audio_paths[2], generated_audio_paths[3], generated_audio_paths[4], generated_audio_paths[5], list_translations[0], list_translations[1], list_translations[2], list_translations[3], list_translations[4], list_translations[5]
+    return generated_audio_paths[0], list_translations[0]
 
 # Function to transcribe audio using AssemblyAI
 def transcribe_audio(audio_file):
-    aai.settings.api_key = "<your-assemblyai-api-key>"
+    aai.settings.api_key = os.getenv("ASSEMBLY_AI_API_KEY")
 
-    transcriber = aai.Transcriber()
+    config = aai.TranscriptionConfig(language_detection=True)
+    transcriber = aai.Transcriber(config=config)
+
     transcript = transcriber.transcribe(audio_file)
+    print(f"Language : {transcript.json_response['language_code']}")
+    print(f"Transcript: {transcript.text}")
 
     return transcript
 
@@ -45,11 +53,11 @@ def transcribe_audio(audio_file):
 # Function to translate text
 def translate_text(text: str) -> str:
 
-    languages = ["ru", "tr", "sv", "de", "es", "ja"]
+    languages = ["bn"]
     list_translations = []
 
     for lan in languages:
-        translator = Translator(from_lang="en", to_lang=lan)
+        translator = Translator(from_lang="autodetect", to_lang=lan)
         translation = translator.translate(text)
         list_translations.append(translation)
 
@@ -60,12 +68,12 @@ def text_to_speech(text: str) -> str:
 
     # ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
     client = ElevenLabs(
-        api_key= "<your-elevenlabs-api-key>",
+        api_key= os.getenv("ELEVENLABS_API_KEY"),
     )
 
     # Calling the text_to_speech conversion API with detailed parameters
     response = client.text_to_speech.convert(
-        voice_id="<your-voice-id>", #clone your voice on elevenlabs dashboard and copy the id
+        voice_id=os.getenv("ELEVENLABS_VOICE_ID"), #clone your voice on elevenlabs dashboard and copy the id
         optimize_streaming_latency="0",
         output_format="mp3_22050_32",
         text=text,
@@ -126,39 +134,12 @@ with gr.Blocks() as demo:
     with gr.Row():
         
 
-        with gr.Group() as turkish:
+        with gr.Group() as bangla:
             # gr.Image("flags/turkish.png", width = 150, show_download_button=False, show_label=False)
-            tr_output = gr.Audio(label="Turkish", interactive=False)
-            tr_text = gr.Markdown()
+            bg_output = gr.Audio(label="Bangla", interactive=False)
+            bg_text = gr.Markdown()
 
-        with gr.Group() as swedish:
-            # gr.Image("flags/swedish.png", width = 150, show_download_button=False, show_label=False)
-            sv_output = gr.Audio(label="Swedish", interactive=False)
-            sv_text = gr.Markdown()
-
-        with gr.Group() as russian:
-            # gr.Image("flags/russian.png", width = 150, show_download_button=False, show_label=False)
-            ru_output = gr.Audio(label="Russian", interactive=False)
-            ru_text = gr.Markdown()
-
-    with gr.Row():
-
-        with gr.Group():
-            # gr.Image("flags/german.png", width = 150, show_download_button=False, show_label=False)
-            de_output = gr.Audio(label="German", interactive=False)
-            de_text = gr.Markdown()
-
-        with gr.Group():
-            # gr.Image("flags/spanish.png", width = 150, show_download_button=False, show_label=False)
-            es_output = gr.Audio(label="Spanish", interactive=False)
-            es_text = gr.Markdown()
-
-        with gr.Group():
-            # gr.Image("flags/japanese.png", width = 150, show_download_button=False, show_label=False)
-            jp_output = gr.Audio(label="Japanese", interactive=False)
-            jp_text = gr.Markdown()
-                
-    output_components = [ru_output, tr_output, sv_output, de_output, es_output, jp_output, ru_text, tr_text, sv_text, de_text, es_text, jp_text]
+    output_components = [bg_output, bg_text]
     submit.click(fn=voice_to_voice, inputs=audio_input, outputs=output_components, show_progress=True)
            
         

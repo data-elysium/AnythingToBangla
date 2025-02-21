@@ -1,0 +1,9 @@
+gradio==4.44.1
+assemblyai==0.37.0
+translate==3.6.1
+elevenlabs==1.51.0
+numpy==1.26.4
+pyaudio==0.2.14
+pydub==0.25.1
+ffmpeg-python==0.2.0
+python-dotenv==1.0.1
